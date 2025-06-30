@@ -217,7 +217,60 @@ export const LoginPage = ({ onLogin }) => {
 };
 
 // Chat Message Component
-export const ChatMessage = ({ message, isUser, timestamp }) => {
+export const ChatMessage = ({ message, isUser, timestamp, code, language }) => {
+  const [showExecuteButton, setShowExecuteButton] = useState(false);
+  const [executionResult, setExecutionResult] = useState(null);
+
+  useEffect(() => {
+    setShowExecuteButton(!!code && !isUser);
+  }, [code, isUser]);
+
+  const executeCode = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: code,
+          language: language || 'python',
+          user_id: 'demo-user'
+        })
+      });
+
+      const result = await response.json();
+      setExecutionResult(result);
+    } catch (error) {
+      setExecutionResult({
+        success: false,
+        error: error.message
+      });
+    }
+  };
+
+  // Function to render markdown-style message
+  const renderMessage = (text) => {
+    // Convert **text** to bold
+    let rendered = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert ```code``` blocks to styled code
+    rendered = rendered.replace(/```(\w+)?\n?([\s\S]*?)```/g, (match, lang, code) => {
+      return `<div class="code-block">
+        <div class="code-header">${lang || 'code'}</div>
+        <pre><code>${code.trim()}</code></pre>
+      </div>`;
+    });
+    
+    // Convert `inline code` to styled inline code
+    rendered = rendered.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+    
+    // Convert line breaks
+    rendered = rendered.replace(/\n/g, '<br>');
+    
+    return rendered;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -241,8 +294,41 @@ export const ChatMessage = ({ message, isUser, timestamp }) => {
               ? 'bg-blue-500 text-white' 
               : 'bg-gray-800 text-gray-200 border border-gray-700'
           }`}>
-            <p className="text-sm">{message}</p>
-            <p className="text-xs opacity-70 mt-1">{timestamp}</p>
+            <div 
+              className="text-sm message-content"
+              dangerouslySetInnerHTML={{ __html: renderMessage(message) }}
+            />
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs opacity-70">{timestamp}</p>
+              {showExecuteButton && (
+                <button
+                  onClick={executeCode}
+                  className="ml-2 px-2 py-1 bg-green-500 hover:bg-green-600 text-white text-xs rounded transition-colors"
+                >
+                  <Play className="w-3 h-3 inline mr-1" />
+                  Run Code
+                </button>
+              )}
+            </div>
+            
+            {/* Execution Result */}
+            {executionResult && (
+              <div className="mt-3 p-3 bg-gray-900 rounded border">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Terminal className="w-4 h-4" />
+                  <span className="text-xs font-medium">Execution Result:</span>
+                </div>
+                {executionResult.success ? (
+                  <pre className="text-green-400 text-xs whitespace-pre-wrap">
+                    {executionResult.output || 'Code executed successfully (no output)'}
+                  </pre>
+                ) : (
+                  <pre className="text-red-400 text-xs whitespace-pre-wrap">
+                    Error: {executionResult.error}
+                  </pre>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
