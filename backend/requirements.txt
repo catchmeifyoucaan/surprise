@@ -23,3 +23,11 @@ numpy>=1.26.0
 python-multipart>=0.0.9
 jq>=1.6.0
 typer>=0.9.0
+-e 
+# AI and Development Tools
+openai==1.93.0
+anthropic==0.55.0
+groq==0.29.0
+aiofiles==24.1.0
+beautifulsoup4==4.13.4
+lxml==6.0.0
