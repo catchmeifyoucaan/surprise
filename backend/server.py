@@ -12,10 +12,30 @@ import uuid
 from datetime import datetime
 import json
 
-# Import our AI services
-from ai_service import ai_service
-from project_manager import project_manager
-from deployment_service import deployment_service
+# Import our AI services (with error handling)
+try:
+    from ai_service import ai_service
+    AI_AVAILABLE = True
+except Exception as e:
+    print(f"Warning: AI service not available: {e}")
+    AI_AVAILABLE = False
+    ai_service = None
+
+try:
+    from project_manager import project_manager
+    PROJECT_MANAGER_AVAILABLE = True
+except Exception as e:
+    print(f"Warning: Project manager not available: {e}")
+    PROJECT_MANAGER_AVAILABLE = False
+    project_manager = None
+
+try:
+    from deployment_service import deployment_service
+    DEPLOYMENT_AVAILABLE = True
+except Exception as e:
+    print(f"Warning: Deployment service not available: {e}")
+    DEPLOYMENT_AVAILABLE = False
+    deployment_service = None
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
