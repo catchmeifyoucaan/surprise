@@ -472,6 +472,62 @@ export const Sidebar = ({ activeTab, setActiveTab, projects, onNewProject, onLog
 // Main Dashboard Component
 export const Dashboard = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('chat');
+  
+  const handleDeploy = async (platform) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/deploy`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          platform,
+          user_id: 'demo-user'
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        // Handle successful deployment
+        console.log(`Deployment to ${platform} initiated`);
+      } else {
+        console.error(`Deployment to ${platform} failed:`, data.error);
+      }
+    } catch (error) {
+      console.error(`Error deploying to ${platform}:`, error);
+    }
+  };
+
+  const handleExportProject = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/export`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: 'demo-user'
+        })
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'project.zip';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        console.error('Failed to export project');
+      }
+    } catch (error) {
+      console.error('Error exporting project:', error);
+    }
+  };
+
   const [projects, setProjects] = useState([
     {
       id: 1,
