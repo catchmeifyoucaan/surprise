@@ -668,6 +668,8 @@ export const Dashboard = ({ onLogout }) => {
                   message={message.message}
                   isUser={message.isUser}
                   timestamp={message.timestamp}
+                  code={message.code}
+                  language={message.language}
                 />
               ))}
               <div ref={messagesEndRef} />
