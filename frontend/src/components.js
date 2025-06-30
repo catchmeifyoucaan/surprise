@@ -474,6 +474,19 @@ export const Dashboard = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('chat');
   
   const handleDeploy = async (platform) => {
+    if (projects.length === 0) {
+      const noProjectMessage = {
+        id: messages.length + 1,
+        message: "❌ No projects available for deployment. Please create a project first!",
+        isUser: false,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setMessages(prev => [...prev, noProjectMessage]);
+      return;
+    }
+
+    const project = projects[0]; // Deploy the first project
+    
     try {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/deploy`, {
         method: 'POST',
@@ -481,33 +494,64 @@ export const Dashboard = ({ onLogout }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          platform,
-          user_id: 'demo-user'
+          project_id: project.id,
+          user_id: 'demo-user',
+          platform: platform
         })
       });
       
       const data = await response.json();
+      
       if (data.success) {
-        // Handle successful deployment
-        console.log(`Deployment to ${platform} initiated`);
+        const successMessage = {
+          id: messages.length + 1,
+          message: `🚀 **Deployment Successful!**\n\n**Platform:** ${data.platform}\n**URL:** ${data.url || 'Check platform dashboard'}\n**Project:** ${project.name}`,
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        setMessages(prev => [...prev, successMessage]);
+        
+        // Update project status
+        setProjects(prev => prev.map(p => 
+          p.id === project.id ? { ...p, status: 'deployed' } : p
+        ));
       } else {
-        console.error(`Deployment to ${platform} failed:`, data.error);
+        const errorMessage = {
+          id: messages.length + 1,
+          message: `❌ **Deployment Failed**\n\n**Error:** ${data.error}\n\n${data.setup_instructions || data.suggestion || ''}`,
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        setMessages(prev => [...prev, errorMessage]);
       }
     } catch (error) {
-      console.error(`Error deploying to ${platform}:`, error);
+      const errorMessage = {
+        id: messages.length + 1,
+        message: `❌ **Deployment Error:** ${error.message}`,
+        isUser: false,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
   const handleExportProject = async () => {
+    if (projects.length === 0) {
+      const noProjectMessage = {
+        id: messages.length + 1,
+        message: "❌ No projects available for export. Please create a project first!",
+        isUser: false,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setMessages(prev => [...prev, noProjectMessage]);
+      return;
+    }
+
+    const project = projects[0]; // Export the first project
+    
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/export`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: 'demo-user'
-        })
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/projects/demo-user/${project.id}/export`, {
+        method: 'GET'
       });
       
       if (response.ok) {
@@ -515,16 +559,36 @@ export const Dashboard = ({ onLogout }) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'project.zip';
+        a.download = `${project.name}.zip`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        
+        const successMessage = {
+          id: messages.length + 1,
+          message: `📦 **Project Exported!**\n\nProject "${project.name}" has been downloaded as a ZIP file.`,
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        setMessages(prev => [...prev, successMessage]);
       } else {
-        console.error('Failed to export project');
+        const errorMessage = {
+          id: messages.length + 1,
+          message: `❌ **Export Failed:** Unable to export project`,
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        setMessages(prev => [...prev, errorMessage]);
       }
     } catch (error) {
-      console.error('Error exporting project:', error);
+      const errorMessage = {
+        id: messages.length + 1,
+        message: `❌ **Export Error:** ${error.message}`,
+        isUser: false,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
