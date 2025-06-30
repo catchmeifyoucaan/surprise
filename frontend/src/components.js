@@ -515,17 +515,48 @@ export const Dashboard = ({ onLogout }) => {
     }
   };
 
-  const handleNewProject = () => {
-    const newProject = {
-      id: projects.length + 1,
-      name: 'New Project',
-      type: 'React + FastAPI',
-      description: 'A new project created with AI assistance',
-      lastModified: 'Just now',
-      status: 'draft'
-    };
-    setProjects(prev => [...prev, newProject]);
-    setActiveTab('projects');
+  const handleNewProject = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: 'New AI-generated project',
+          tech_stack: 'React + FastAPI',
+          user_id: 'demo-user'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        const newProject = {
+          id: data.project_id,
+          name: data.project_name,
+          type: 'React + FastAPI',
+          description: 'A new project created with AI assistance',
+          lastModified: 'Just now',
+          status: 'created'
+        };
+        setProjects(prev => [newProject, ...prev]);
+        setActiveTab('projects');
+        
+        // Show success message
+        const successMessage = {
+          id: messages.length + 1,
+          message: `🎉 Project "${data.project_name}" created successfully!\n\nFiles created: ${data.files_created}\nProject ID: ${data.project_id}`,
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        setMessages(prev => [...prev, successMessage]);
+      } else {
+        console.error('Failed to create project:', data.error);
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+    }
   };
 
   const handleDeleteProject = (projectId) => {
