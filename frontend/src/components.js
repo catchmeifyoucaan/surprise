@@ -445,27 +445,74 @@ export const Dashboard = ({ onLogout }) => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputMessage;
     setInputMessage('');
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "I'd be happy to help you build that! Let me create a comprehensive solution for you.",
-        "Great idea! I'll start by setting up the project structure and then implement the core functionality.",
-        "Perfect! I can help you build that. Let me break this down into manageable components.",
-        "Excellent choice! I'll create a modern, responsive application with best practices.",
-        "That's a fantastic project! I'll implement it with clean code and optimal performance."
-      ];
-      
-      const aiMessage = {
-        id: messages.length + 2,
-        message: responses[Math.floor(Math.random() * responses.length)],
-        isUser: false,
-        timestamp: new Date().toLocaleTimeString()
-      };
+    // Show typing indicator
+    const typingMessage = {
+      id: messages.length + 2,
+      message: "🤖 AI is generating code...",
+      isUser: false,
+      timestamp: new Date().toLocaleTimeString(),
+      isTyping: true
+    };
+    setMessages(prev => [...prev, typingMessage]);
 
-      setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
+    try {
+      // Send to real AI backend
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: currentMessage,
+          user_id: 'demo-user',
+          language: 'python',
+          model: 'auto'
+        })
+      });
+
+      const data = await response.json();
+      
+      // Remove typing indicator and add real response
+      setMessages(prev => {
+        const withoutTyping = prev.filter(msg => !msg.isTyping);
+        
+        if (data.success && data.response.success) {
+          const aiMessage = {
+            id: withoutTyping.length + 1,
+            message: `✨ **Code Generated Successfully!**\n\n**Model Used:** ${data.response.model_used}\n\n**Code:**\n\`\`\`${data.response.language}\n${data.response.code}\n\`\`\`\n\n**Explanation:** ${data.response.explanation}`,
+            isUser: false,
+            timestamp: new Date().toLocaleTimeString(),
+            code: data.response.code,
+            language: data.response.language
+          };
+          return [...withoutTyping, aiMessage];
+        } else {
+          const errorMessage = {
+            id: withoutTyping.length + 1,
+            message: `❌ Error: ${data.response?.error || 'Failed to generate code'}\n\nTip: Make sure AI API keys are configured in backend/.env`,
+            isUser: false,
+            timestamp: new Date().toLocaleTimeString()
+          };
+          return [...withoutTyping, errorMessage];
+        }
+      });
+
+    } catch (error) {
+      // Remove typing indicator and show error
+      setMessages(prev => {
+        const withoutTyping = prev.filter(msg => !msg.isTyping);
+        const errorMessage = {
+          id: withoutTyping.length + 1,
+          message: `❌ Connection Error: ${error.message}\n\nPlease check if the backend is running.`,
+          isUser: false,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        return [...withoutTyping, errorMessage];
+      });
+    }
   };
 
   const handleNewProject = () => {
