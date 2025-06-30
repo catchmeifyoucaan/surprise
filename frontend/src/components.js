@@ -762,12 +762,15 @@ export const Dashboard = ({ onLogout }) => {
                     <Globe className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-white font-medium">Production Deployment</h3>
-                    <p className="text-gray-400 text-sm">Deploy to cloud with custom domain</p>
+                    <h3 className="text-white font-medium">Vercel Deployment</h3>
+                    <p className="text-gray-400 text-sm">Deploy to Vercel with custom domain</p>
                   </div>
                 </div>
-                <button className="w-full py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors">
-                  Deploy Now
+                <button 
+                  onClick={() => handleDeploy('vercel')}
+                  className="w-full py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                >
+                  Deploy to Vercel
                 </button>
               </div>
               
@@ -777,13 +780,79 @@ export const Dashboard = ({ onLogout }) => {
                     <Zap className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-white font-medium">Preview Deployment</h3>
-                    <p className="text-gray-400 text-sm">Test your app before going live</p>
+                    <h3 className="text-white font-medium">Netlify Deployment</h3>
+                    <p className="text-gray-400 text-sm">Deploy to Netlify CDN</p>
                   </div>
                 </div>
-                <button className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+                <button 
+                  onClick={() => handleDeploy('netlify')}
+                  className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                >
+                  Deploy to Netlify
+                </button>
+              </div>
+              
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <Eye className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-medium">Preview Deployment</h3>
+                    <p className="text-gray-400 text-sm">Create local preview</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleDeploy('preview')}
+                  className="w-full py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+                >
                   Create Preview
                 </button>
+              </div>
+              
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <Download className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-medium">Export Project</h3>
+                    <p className="text-gray-400 text-sm">Download as ZIP file</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={handleExportProject}
+                  className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                >
+                  Export ZIP
+                </button>
+              </div>
+            </div>
+            
+            {/* Deployment History */}
+            <div className="mt-8">
+              <h3 className="text-lg font-bold text-white mb-4">Recent Deployments</h3>
+              <div className="space-y-3">
+                {projects.slice(0, 3).map((project) => (
+                  <div key={project.id} className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-white font-medium">{project.name}</h4>
+                      <p className="text-gray-400 text-sm">{project.type} • {project.lastModified}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`w-2 h-2 rounded-full ${
+                        project.status === 'deployed' ? 'bg-green-500' : 
+                        project.status === 'building' ? 'bg-yellow-500' : 'bg-gray-500'
+                      }`}></span>
+                      <span className="text-xs text-gray-400 capitalize">{project.status}</span>
+                      {project.status === 'deployed' && (
+                        <button className="ml-2 text-blue-400 hover:text-blue-300">
+                          <ExternalLink className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
