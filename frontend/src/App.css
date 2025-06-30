@@ -95,6 +95,47 @@ body {
   word-break: break-word;
 }
 
+.message-content strong {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.message-content .code-block {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin: 8px 0;
+  overflow: hidden;
+}
+
+.message-content .code-header {
+  background: #2d2d2d;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #888;
+  border-bottom: 1px solid #333;
+}
+
+.message-content .code-block pre {
+  padding: 12px;
+  margin: 0;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #f8f8f2;
+}
+
+.message-content .inline-code {
+  background: #2d2d2d;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  color: #f8f8f2;
+}
+
 /* Loading Spinner */
 .loading-spinner {
   border: 2px solid #f3f3f3;
