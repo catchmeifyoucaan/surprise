@@ -92,6 +92,21 @@ class StatusCheckCreate(BaseModel):
 async def chat_with_ai(request: ChatMessage):
     """Chat with AI and generate code based on user message"""
     try:
+        if not AI_AVAILABLE or not ai_service:
+            return {
+                "success": False,
+                "response": {
+                    "success": False,
+                    "error": "AI service not available. Please check backend configuration.",
+                    "code": "# AI service not configured\nprint('Please add AI API keys to backend/.env')",
+                    "explanation": "To enable AI functionality, add your API keys to the backend/.env file.",
+                    "model_used": "Fallback",
+                    "language": request.language
+                },
+                "message": "AI service unavailable",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        
         # Generate code based on user message
         result = await ai_service.generate_code(
             prompt=request.message,
@@ -118,7 +133,19 @@ async def chat_with_ai(request: ChatMessage):
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {
+            "success": False,
+            "response": {
+                "success": False,
+                "error": str(e),
+                "code": "# Error occurred\nprint('Backend error')",
+                "explanation": f"An error occurred: {str(e)}",
+                "model_used": "Error",
+                "language": request.language
+            },
+            "message": f"Error: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
 @api_router.post("/execute")
 async def execute_code(request: CodeExecutionRequest):
